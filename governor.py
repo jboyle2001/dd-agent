@@ -21,8 +21,22 @@ class Governor(object):
         self._limiters = copy.deepcopy(self._LIMITERS)
 
     def set(self, func):
+        """
+        Set governor to run as a decorator
+        """
         self._submit_metric = func
         self._submit_metric_arg_names = inspect.getargspec(func)[0]
+
+    def get_status(self):
+        """
+        Returns limiter statuses and flush limiters
+        """
+        statuses = [l.get_status() for l in self._limiters]
+
+        # Flush limiters
+        self._limiters = copy.deepcopy(self._LIMITERS)
+
+        return statuses
 
     def _name_args(self, arg_list, kwargs):
         """
@@ -41,6 +55,9 @@ class Governor(object):
         return all(r.check(args) for r in self._limiters)
 
     def __call__(self, *args, **kw):
+        """
+        Decorator purpose around `submit_metric` method for 'real-time' analysis
+        """
         # Shortcut when no rules are defined
         if not self._limiters:
             return self._submit_metric(*args, **kw)
@@ -51,17 +68,6 @@ class Governor(object):
         # Extract argument dict
         if self._check(named_args):
             return self._submit_metric(*args, **kw)
-
-    def get_status(self):
-        """
-        Returns limiter statuses and flush limiters
-        """
-        statuses = [l.get_status() for l in self._limiters]
-
-        # Flush limiters
-        self._limiters = copy.deepcopy(self._LIMITERS)
-
-        return statuses
 
 
 class LimiterParser(object):

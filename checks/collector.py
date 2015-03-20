@@ -269,6 +269,7 @@ class Collector(object):
 
                 # Collect the metrics and events.
                 current_check_metrics = check.get_metrics()
+                import pdb; pdb.set_trace()
                 current_check_events = check.get_events()
 
                 # Collect governor status
