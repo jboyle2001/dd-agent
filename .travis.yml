@@ -6,10 +6,12 @@ branches:
     - /^\d+\.\d+\.x$/ # release forked patches branch
 
 cache:
-  bundler: true
   directories:
-    - $HOME/.pip-cache
-    - $HOME/embedded
+    - embedded
+    - .cache/pip
+
+before_cache:
+  - 'rm -f embedded/**/*.log'
 
 language: python
 python:
@@ -23,8 +25,8 @@ env:
   global:
     - CONCURRENCY=2
     - NOSE_FILTER="not windows"
-    - INTEGRATIONS_DIR=$HOME/embedded
-    - PIP_CACHE=$HOME/.pip-cache
+    - INTEGRATIONS_DIR=embedded
+    - PIP_CACHE=.cache/pip
     - SKIP_CLEANUP=true
     - VOLATILE_DIR=/tmp
   matrix:
@@ -50,7 +52,8 @@ env:
 # FIXME: cannot enable gearman on Travis right now
 # because it needs boost
 #    - TRAVIS_FLAVOR=gearman
-    - TRAVIS_FLAVOR=tomcat # JMX testing machine / need the other ones before
+    # JMX testing machine / need the other ones before
+    - TRAVIS_FLAVOR=tomcat
     - TRAVIS_FLAVOR=mysql
     - TRAVIS_FLAVOR=couchdb
     - TRAVIS_FLAVOR=snmpd
@@ -73,17 +76,11 @@ before_script: echo "OVERRIDING TRAVIS STEPS"
 
 script:
   - bundle install
-  - 'ls -al $HOME/embedded'
+  - 'ls -al embedded'
   - 'rake ci:run'
+  - 'ls -al embedded'
+
 
 after_failure:
   - echo "Logs from installation process come here / DEBUG LOGS"
   - cat /tmp/ci.log
-
-after_error:
-  - echo "Logs from installation process come here / DEBUG LOGS"
-  - cat /tmp/ci.log
-
-notifications:
-  slack:
-    secure: DTv6FhbyKCfQVAQkz4QXDwZeKkGQsFFSoFBdry/Rn+tWet3y/dSDDRCVl7wumJbfsURCtR7qAp2wAn0h/6RGjFBYozzO3Y7UlxA0mtKgIFi7jyMz287NLnIwTN6deHqEaMpMdpiWeBn9QANF/Scyl5/isCOwUpRXYgQR9beV/Rk=
